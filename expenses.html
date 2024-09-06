@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Expenses</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <h2>Expense Tracker</h2>
+    <form id="expense-form">
+        <input type="number" name="amount" placeholder="Expense Amount" required>
+        <input type="text" name="description" placeholder="Description" required>
+        <select name="category" required>
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Entertainment">Entertainment</option>
+        </select>
+        <button type="submit">Add Expense</button>
+    </form>
+
+    <label for="expense-limit">Show expenses per page:</label>
+    <input type="number" id="expense-limit" min="5" max="50" step="5">
+
+    <h3>Your Expenses</h3>
+    <ul id="expenses-list"></ul>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const expenseLimitInput = document.getElementById('expense-limit');
+
+            // Load saved preference from local storage
+            const savedLimit = localStorage.getItem('expenseLimit') || 10;
+            expenseLimitInput.value = savedLimit;
+            await loadExpenses(savedLimit);
+
+            expenseLimitInput.addEventListener('change', (event) => {
+                const limit = event.target.value;
+                localStorage.setItem('expenseLimit', limit);
+                loadExpenses(limit);
+            });
+        });
+
+        document.getElementById('expense-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const data = new URLSearchParams();
+            formData.forEach((value, key) => data.append(key, value));
+
+            try {
+                const response = await fetch('/expenses/add', {
+                    method: 'POST',
+                    body: data
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok.');
+
+                const newExpense = await response.json();
+                addExpenseToList(newExpense);
+                event.target.reset();
+            } catch (error) {
+                console.error('Error adding expense:', error);
+            }
+        });
+
+        async function loadExpenses(limit = 10) {
+            try {
+                const response = await fetch(`/expenses/data?limit=${limit}`);
+                if (!response.ok) throw new Error('Network response was not ok.');
+                
+                const expenses = await response.json();
+                const expensesList = document.getElementById('expenses-list');
+                expensesList.innerHTML = ''; // Clear previous items
+
+                expenses.forEach(expense => addExpenseToList(expense));
+            } catch (error) {
+                console.error('Error fetching expenses:', error);
+            }
+        }
+
+        function addExpenseToList(expense) {
+            const expensesList = document.getElementById('expenses-list');
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `${expense.amount} - ${expense.description} - ${expense.category}`;
+            expensesList.appendChild(listItem);
+        }
+    </script>
+</body>
+</html>

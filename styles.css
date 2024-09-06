@@ -1,0 +1,21 @@
+/* Add any styles you need here */
+body {
+    font-family: Arial, sans-serif;
+}
+
+h2 {
+    margin-bottom: 20px;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+#expenses-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#expenses-list li {
+    margin-bottom: 10px;
+}
